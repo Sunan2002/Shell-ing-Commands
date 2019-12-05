@@ -19,8 +19,6 @@ char** split_input(char *input) {
             args = realloc(args, cap_args * sizeof(char*));
         }
 
-        printf("cap_args: %d, num_args: %d, token: %s\n", cap_args, num_args, token);
-
         args[num_args++] = token;
 
         token = strtok(NULL, " ");
