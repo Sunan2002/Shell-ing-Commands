@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "parser.h"
+#include "exec.h"
 
 int main(int argc, int **argv) {
     printf("Welcome to the chocomilk shell! © Darius Jankauskas, Sunan Tajwar 2019\n");
@@ -26,12 +27,7 @@ int main(int argc, int **argv) {
             continue;
         }
 
-        printf("Testing split_args: \n");
-        for(size_t i = 0; args[i] != NULL; i++) {
-            printf("%d: %s\n", i, args[i]);
-        }
-
-        //TODO: execute command
+        exec_args(args);
 
         free(args);
     }
