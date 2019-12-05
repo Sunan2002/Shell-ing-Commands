@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 #include <string.h>
+#include <errno.h>
 
 _Bool exec_special(char **args);
 
@@ -35,6 +36,28 @@ _Bool exec_special(char **args) {
             printf("Error: exit expects 0 arguments.\n");
             return true;
         }
+    }
+    else if(strcmp(args[0], "cd") == 0) {
+        if(args[1] != NULL && args[2] != NULL) {
+            printf("Error: cd expects 0 or 1 arguments.\n");
+        }
+        else if(args[1] == NULL) {
+            char *home = getenv("HOME");
+            int err;
+            if(home) {
+                chdir(home);
+            }
+            else chdir("/");
+            if(err < 0) {
+                printf("Error: %s.\n", strerror(errno));
+            }
+        }
+        else {
+            if (chdir(args[1]) < 0) {
+                printf("Error: %s.\n", strerror(errno));
+            }
+        }
+        return true;
     }
     else return false;
 }
