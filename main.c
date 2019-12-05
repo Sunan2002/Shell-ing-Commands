@@ -14,16 +14,26 @@ int main(int argc, int **argv) {
     char input[10000];
 
     while(true) {
-        //TODO: print current working directory
+        //TODO: print current working directory and user
 
         //TODO: check for errors
         fgets(input, sizeof input, stdin);
         strip_newline(input);
         
         char **args = split_input(input);
-        if(!args) continue;
+        if(!args) {
+            printf("Parse args returned null");
+            continue;
+        }
+
+        printf("Testing split_args: \n");
+        for(size_t i = 0; args[i] != NULL; i++) {
+            printf("%d: %s\n", i, args[i]);
+        }
 
         //TODO: execute command
+
+        free(args);
     }
 
     return 0;
