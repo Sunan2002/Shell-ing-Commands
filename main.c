@@ -7,7 +7,7 @@
 #include "parser.h"
 #include "exec.h"
 
-int main(int argc, int **argv) {
+int main(int argc,  **argv) {
     printf("Welcome to the chocomilk shell! © Darius Jankauskas, Sunan Tajwar 2019\n");
     printf("For help, type help <command_name>.\n");
 
@@ -16,7 +16,9 @@ int main(int argc, int **argv) {
 
     while(true) {
         //TODO: print current working directory and user
-
+        char cwd[1000];
+        getcwd(cwd, sizeof(cwd));
+        printf("%s", cwd);
         //TODO: check for errors
         fgets(input, sizeof input, stdin);
         strip_newline(input);
