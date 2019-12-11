@@ -14,6 +14,8 @@ _Bool exec_special(char **args);
 
 void exec_single_program_args(char ** args, int stdin, int stdout, int stderr);
 
+void pipe_args(char** args);
+
 void exec_args(char ** args) {
     int stdout_fd = STDOUT_FILENO;
     int stdin_fd = STDIN_FILENO;
@@ -135,6 +137,52 @@ void exec_args(char ** args) {
         close(stderr_fd);
     }
 }
+
+void pipe_args (char** args){
+    int stdout_fd = STDOUT_FILENO;
+    int stdin_fd = STDIN_FILENO;
+    int stderr_fd = STDERR_FILENO;
+    
+    if(!args) return;
+    for(char **pos = args; *pos != NULL; pos++) {
+        if (strcmp(*pos, "| ") == 0) {
+            if (pos[-1] == NULL){
+                printf("\nError: Must Specify Which File You are Piping from.");
+            }
+            int fd1 = open(pos[-1], O_CREAT | O_TRUNC | O_RDWR);
+            if (fd1 < 0) {
+                printf("Error: %s\n", strerror(errno));
+                return;
+            }
+            if (pos[1] == NULL){
+                printf("\nError: Must Specify Which File You are Piping to.");
+            }
+            int fd2 = open(pos[1], O_CREAT | O_TRUNC | O_RDWR);
+            if (fd2 < 0) {
+                printf("Error: %s\n", strerror(errno));
+                return;
+            }
+            stdin_fd = fd1;
+            stdout_fd = fd2;
+            stderr_fd = fd2;
+            *pos = NULL;
+            break;
+        }
+    }
+
+    exec_single_program_args(args, stdin_fd, stdout_fd, stderr_fd);
+
+    if (stdin_fd != STDIN_FILENO) {
+          close(stdin_fd);
+    }
+    if (stdout_fd != STDOUT_FILENO) {
+          close(stdout_fd);
+    }
+    if (stderr_fd != STDERR_FILENO) {
+           close(stderr_fd);
+           }
+}
+
 
 //args: program name and its arguments
 //int stdin, stdout, stderr: file descriptors to use for child
