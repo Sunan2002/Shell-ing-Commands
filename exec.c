@@ -157,6 +157,9 @@ void pipe_args (char** args){
                 fprintf(stderr, "Failed to Pipe");
                 return;
             }
+            else {
+                pipe(fds);
+            }
 
             int READ = fds[0];
             int WRITE = fds[1];
