@@ -118,6 +118,16 @@ void exec_args(char ** args) {
             break;
         }
 
+        else if(strcmp(*pos, "|") == 0) {
+            printf("test: found |\n");
+            if(pos[1] == NULL) {
+                printf("Error: must specify file to pipe to.\n");
+                return;
+            }
+            pipe_args(args);
+            break;
+        }
+
         else if (strcmp(*pos, ";") == 0) {
             *pos = NULL;
             exec_single_program_args(program_args, stdin_fd, stdout_fd, stderr_fd);
