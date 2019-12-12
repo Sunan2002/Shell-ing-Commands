@@ -243,6 +243,7 @@ void pipe_args (char** args){
                 int status;
                 waitpid(waiting_for_parent, &status, 0);
                 return;
+                break;
             }
         }
         i++;
