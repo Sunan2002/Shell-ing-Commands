@@ -138,50 +138,116 @@ void exec_args(char ** args) {
     }
 }
 
+
+
+
+
+
 void pipe_args (char** args){
-    int stdout_fd = STDOUT_FILENO;
-    int stdin_fd = STDIN_FILENO;
-    int stderr_fd = STDERR_FILENO;
-    
-    if(!args) return;
-    for(char **pos = args; *pos != NULL; pos++) {
-        if (strcmp(*pos, "| ") == 0) {
-            if (pos[-1] == NULL){
-                printf("\nError: Must Specify Which File You are Piping from.");
-            }
-            int fd1 = open(pos[-1], O_CREAT | O_TRUNC | O_RDWR);
-            if (fd1 < 0) {
-                printf("Error: %s\n", strerror(errno));
+
+   int i = 0;
+   while(args[i]) {
+
+       //checking for "|"
+       if (strcmp(args[i], "|") == 0){
+
+           //inserted a pipe
+            int fds[2];
+            if (pipe(fds) == -1){
+                fprintf(stderr, "Failed to Pipe");
                 return;
             }
-            if (pos[1] == NULL){
-                printf("\nError: Must Specify Which File You are Piping to.");
+
+            int READ = fds[0];
+            int WRITE = fds[1];
+
+            //first program in pipe
+            char **first_program = malloc(sizeof(char **));
+            int k = 0;
+            while(strcmp(args[k], "|")){
+                first_program[k] = args[k];
             }
-            int fd2 = open(pos[1], O_CREAT | O_TRUNC | O_RDWR);
-            if (fd2 < 0) {
-                printf("Error: %s\n", strerror(errno));
+
+            pid_t f;
+            f = fork();
+            int waiting_for_parent = getpid();
+
+            //child process
+            if(!f){
+
+                //stdout replaced with the WRITE end of pipe
+                dup2(WRITE, STDOUT_FILENO);
+
+                //first program executed into WRITE end
+                if (execvp(first_program[0], first_program) == -1){
+                    fprintf(stderr, "Execution Failed");
+                    return;
+                } else {
+                    execvp(first_program[0], first_program);
+                }
+            }
+            //parent process
+            else {
+                int status;
+                free(first_program);
+                waitpid(waiting_for_parent, &status, 0);
+            }
+
+            //accounting for second program
+            char **second_program = malloc(sizeof(char**));
+            k++; //move past the | token
+            int j = 0;
+            while (args[k]){
+                second_program[j] = args[k];
+                j++;
+                k++;
+            }
+
+            pid_t f2;
+            f2 = fork(); //second fork
+            //second child
+            if (!f2) {
+                close(WRITE);
+
+                waiting_for_parent = getpid();
+
+                //stdin replaced with the READ end of pipe
+                dup2(READ, STDIN_FILENO);
+
+                //second program executed into READ end
+                if (execvp(second_program[0], second_program) == -1){
+                    fprintf(stderr, "Execution Failed");
+                    return;
+                } else {
+                    execvp(second_program[0], second_program);
+                }
+            }
+            // parent process
+            else{ 
+                close(READ);
+                close(WRITE);
+                free(second_program);
+                int status;
+                waitpid(waiting_for_parent, &status, 0);
                 return;
             }
-            stdin_fd = fd1;
-            stdout_fd = fd2;
-            stderr_fd = fd2;
-            *pos = NULL;
-            break;
         }
+        i++;
     }
-
-    exec_single_program_args(args, stdin_fd, stdout_fd, stderr_fd);
-
-    if (stdin_fd != STDIN_FILENO) {
-          close(stdin_fd);
-    }
-    if (stdout_fd != STDOUT_FILENO) {
-          close(stdout_fd);
-    }
-    if (stderr_fd != STDERR_FILENO) {
-           close(stderr_fd);
-           }
+    return;
 }
+        
+
+
+
+
+
+
+
+
+
+
+
 
 
 //args: program name and its arguments
