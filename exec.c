@@ -159,92 +159,73 @@ void pipe_args (char** args){
    while(args[i]) {
 
        //checking for "|"
-       if (strcmp(args[i], "|") == 0){
+       if (strcmp(args[i], "|") == 0 && args[i + 1] != NULL) {
+           args[i] = NULL;
 
            //inserted a pipe
             int fds[2];
-            if (pipe(fds) == -1){
-                fprintf(stderr, "Failed to Pipe");
+            if (pipe(fds) == -1) {
+                fprintf(stderr, "Error: failed to initialize pipes.\n");
                 return;
-            }
-            else {
-                pipe(fds);
             }
 
             int READ = fds[0];
             int WRITE = fds[1];
-
-            //first program in pipe
-            char **first_program = malloc(sizeof(char **));
-            int k = 0;
-            while(strcmp(args[k], "|")){
-                first_program[k] = args[k];
-            }
 
             pid_t f;
             f = fork();
             int waiting_for_parent = getpid();
 
             //child process
-            if(!f){
+            // if(!f) {
 
-                //stdout replaced with the WRITE end of pipe
-                dup2(WRITE, STDOUT_FILENO);
+            //     //stdout replaced with the WRITE end of pipe
+            //     dup2(WRITE, STDOUT_FILENO);
 
-                //first program executed into WRITE end
-                if (execvp(first_program[0], first_program) == -1){
-                    fprintf(stderr, "Execution Failed");
-                    return;
-                } else {
-                    execvp(first_program[0], first_program);
-                }
-            }
-            //parent process
-            else {
-                int status;
-                free(first_program);
-                waitpid(waiting_for_parent, &status, 0);
-            }
+            //     //first program executed into WRITE end
+            //     if (execvp(args[0], args) == -1) {
+            //         fprintf(stderr, "Error: execution of %s failed: %s.\n", args[0], strerror(errno));
+            //         return;
+            //     }
+            //     exit(0);
+            // }
+            // //parent process
+            // else {
+            //     int status;
+            //     waitpid(f, &status, 0);
+            // }
 
-            //accounting for second program
-            char **second_program = malloc(sizeof(char**));
-            k++; //move past the | token
-            int j = 0;
-            while (args[k]){
-                second_program[j] = args[k];
-                j++;
-                k++;
-            }
+            exec_single_program_args(args, STDIN_FILENO, WRITE, STDERR_FILENO);
 
-            pid_t f2;
-            f2 = fork(); //second fork
-            //second child
-            if (!f2) {
-                close(WRITE);
+            char **second_program = args + i + 1;
 
-                waiting_for_parent = getpid();
+            // pid_t f2;
+            // f2 = fork(); //second fork
+            // //second child
+            // if (!f2) {
+            //     waiting_for_parent = getpid();
 
-                //stdin replaced with the READ end of pipe
-                dup2(READ, STDIN_FILENO);
+            //     //stdin replaced with the READ end of pipe
+            //     dup2(READ, STDIN_FILENO);
 
-                //second program executed into READ end
-                if (execvp(second_program[0], second_program) == -1){
-                    fprintf(stderr, "Execution Failed");
-                    return;
-                } else {
-                    execvp(second_program[0], second_program);
-                }
-            }
-            // parent process
-            else{ 
-                close(READ);
-                close(WRITE);
-                free(second_program);
-                int status;
-                waitpid(waiting_for_parent, &status, 0);
-                return;
-                break;
-            }
+            //     //second program executed into READ end
+            //     if (execvp(second_program[0], second_program) == -1){
+            //         fprintf(stderr, "Execution Failed");
+            //         return;
+            //     }
+            //     exit(0);
+            // }
+            // // parent process
+            // else { 
+            //     int status;
+            //     waitpid(f2, &status, 0);
+            //     return;
+            //     break;
+            // }
+
+            exec_single_program_args(second_program, READ, STDOUT_FILENO, STDERR_FILENO);
+            close(WRITE);
+            close(READ);
         }
         i++;
     }
