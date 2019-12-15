@@ -27,9 +27,8 @@ int main(int argc, char **argv) {
     sigaction(SIGINT, &sig_handler, NULL);
     #endif
 
-
-    //TODO: permit arbitrary size?
-    char input[10000];
+    size_t input_size = 1000;
+    char *input = malloc(input_size);
 
     while(true) {
         char cwd[1000];
@@ -37,7 +36,9 @@ int main(int argc, char **argv) {
         printf("MS %s> ", cwd);
         
         //TODO: check for errors
-        fgets(input, sizeof input, stdin);
+        if ( getline(&input, &input_size, stdin) < 0) {
+            break;
+        }
         strip_newline(input);
         
         char **args = split_input(input);
@@ -51,6 +52,7 @@ int main(int argc, char **argv) {
         free(args);
     }
 
+    free(input);
     return 0;
 }
 
