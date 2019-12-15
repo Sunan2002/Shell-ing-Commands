@@ -14,7 +14,7 @@ _Bool exec_special(char **args);
 
 void exec_single_program_args(char ** args, int stdin, int stdout, int stderr);
 
-void pipe_args(char** args);
+void pipe_args(char**, char**);
 
 void exec_args(char ** args) {
     int stdout_fd = STDOUT_FILENO;
@@ -24,13 +24,17 @@ void exec_args(char ** args) {
     char **program_args = args;
 
     if(!args) return;
+
+    //mode for new files
+    mode_t mode = 0666;
+
     for(char **pos = args; *pos != NULL; pos++) {
         if (strcmp(*pos, ">") == 0 || strcmp(*pos, "1>") == 0) {
             if(pos[1] == NULL) {
                 printf("Error: must specify file to redirect to.\n");
                 return;
             }
-            int fd = open(pos[1], O_CREAT | O_TRUNC | O_RDWR);
+            int fd = open(pos[1], O_CREAT | O_TRUNC | O_RDWR, mode);
             if (fd < 0) {
                 printf("Error: %s\n", strerror(errno));
                 return;
@@ -45,7 +49,7 @@ void exec_args(char ** args) {
                 printf("Error: must specify file to redirect to.\n");
                 return;
             }
-            int fd = open(pos[1], O_CREAT | O_TRUNC | O_RDWR);
+            int fd = open(pos[1], O_CREAT | O_TRUNC | O_RDWR, mode);
             if (fd < 0) {
                 printf("Error: %s\n", strerror(errno));
                 return;
@@ -55,12 +59,11 @@ void exec_args(char ** args) {
             break;
         }
         else if (strcmp(*pos, "&>") == 0) {
-            printf("test: found >>\n");
             if(pos[1] == NULL) {
                 printf("Error: must specify file to redirect to.\n");
                 return;
             }
-            int fd = open(pos[1], O_CREAT | O_TRUNC | O_RDWR);
+            int fd = open(pos[1], O_CREAT | O_TRUNC | O_RDWR, mode);
             if (fd < 0) {
                 printf("Error: %s\n", strerror(errno));
                 return;
@@ -72,12 +75,11 @@ void exec_args(char ** args) {
         }
 
         else if (strcmp(*pos, ">>") == 0 || strcmp(*pos, "1>>") == 0) {
-            printf("test: found >>\n");
             if(pos[1] == NULL) {
                 printf("Error: must specify file to redirect to.\n");
                 return;
             }
-            int fd = open(pos[1], O_CREAT | O_APPEND | O_RDWR);
+            int fd = open(pos[1], O_CREAT | O_APPEND | O_RDWR, mode);
             if (fd < 0) {
                 printf("Error: %s\n", strerror(errno));
                 return;
@@ -87,12 +89,11 @@ void exec_args(char ** args) {
             break;
         }
         else if (strcmp(*pos, "2>>") == 0) {
-            printf("test: found >>\n");
             if(pos[1] == NULL) {
                 printf("Error: must specify file to redirect to.\n");
                 return;
             }
-            int fd = open(pos[1], O_CREAT | O_APPEND | O_RDWR);
+            int fd = open(pos[1], O_CREAT | O_APPEND | O_RDWR, mode);
             if (fd < 0) {
                 printf("Error: %s\n", strerror(errno));
                 return;
@@ -102,12 +103,11 @@ void exec_args(char ** args) {
             break;
         }
         else if (strcmp(*pos, "&>>") == 0) {
-            printf("test: found >>\n");
             if(pos[1] == NULL) {
                 printf("Error: must specify file to redirect to.\n");
                 return;
             }
-            int fd = open(pos[1], O_CREAT | O_APPEND | O_RDWR);
+            int fd = open(pos[1], O_CREAT | O_APPEND | O_RDWR, mode);
             if (fd < 0) {
                 printf("Error: %s\n", strerror(errno));
                 return;
@@ -118,20 +118,36 @@ void exec_args(char ** args) {
             break;
         }
 
+        else if (strcmp(*pos, "<") == 0) {
+            if(pos[1] == NULL) {
+                printf("Error: must specify file to redirect from.\n");
+                return;
+            }
+            int fd = open(pos[1], O_RDONLY);
+            if (fd < 0) {
+                printf("Error: %s\n", strerror(errno));
+                return;
+            }
+            stdin_fd = fd;
+            *pos = NULL;
+        }
+
         else if(strcmp(*pos, "|") == 0) {
-            printf("test: found |\n");
             if(pos[1] == NULL) {
                 printf("Error: must specify file to pipe to.\n");
                 return;
             }
-            pipe_args(args);
-            break;
+
+            *pos = NULL;
+
+            pipe_args(args, pos + 1);
+            return;
         }
 
         else if (strcmp(*pos, ";") == 0) {
             *pos = NULL;
             exec_single_program_args(program_args, stdin_fd, stdout_fd, stderr_fd);
-            exec_single_program_args(pos + 1, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO);
+            exec_args(pos + 1);
             return;
         }
     }
@@ -148,106 +164,29 @@ void exec_args(char ** args) {
     }
 }
 
-
-
-
-
-
-void pipe_args (char** args){
-
-   int i = 0;
-   while(args[i]) {
-
-       //checking for "|"
-       if (strcmp(args[i], "|") == 0 && args[i + 1] != NULL) {
-           args[i] = NULL;
-
-           //inserted a pipe
-            int fds[2];
-            if (pipe(fds) == -1) {
-                fprintf(stderr, "Error: failed to initialize pipes.\n");
-                return;
-            }
-
-            int READ = fds[0];
-            int WRITE = fds[1];
-
-            pid_t f;
-            f = fork();
-            int waiting_for_parent = getpid();
-
-            //child process
-            // if(!f) {
-
-            //     //stdout replaced with the WRITE end of pipe
-            //     dup2(WRITE, STDOUT_FILENO);
-
-            //     //first program executed into WRITE end
-            //     if (execvp(args[0], args) == -1) {
-            //         fprintf(stderr, "Error: execution of %s failed: %s.\n", args[0], strerror(errno));
-            //         return;
-            //     }
-            //     exit(0);
-            // }
-            // //parent process
-            // else {
-            //     int status;
-            //     waitpid(f, &status, 0);
-            // }
-
-            exec_single_program_args(args, STDIN_FILENO, WRITE, STDERR_FILENO);
-
-            char **second_program = args + i + 1;
-
-            // pid_t f2;
-            // f2 = fork(); //second fork
-            // //second child
-            // if (!f2) {
-            //     waiting_for_parent = getpid();
-
-            //     //stdin replaced with the READ end of pipe
-            //     dup2(READ, STDIN_FILENO);
-
-            //     //second program executed into READ end
-            //     if (execvp(second_program[0], second_program) == -1){
-            //         fprintf(stderr, "Execution Failed");
-            //         return;
-            //     }
-            //     exit(0);
-            // }
-            // // parent process
-            // else { 
-            //     int status;
-            //     waitpid(f2, &status, 0);
-            //     return;
-            //     break;
-            // }
-
-            exec_single_program_args(second_program, READ, STDOUT_FILENO, STDERR_FILENO);
-            close(WRITE);
-            close(READ);
-        }
-        i++;
+void pipe_args (char **first_args, char **second_args) {
+    //inserted a pipe
+    int fds[2];
+    if (pipe(fds) == -1) {
+        fprintf(stderr, "Error: failed to initialize pipes.\n");
+        return;
     }
+
+    int READ = fds[0];
+    int WRITE = fds[1];
+
+    exec_single_program_args(first_args, STDIN_FILENO, WRITE, STDERR_FILENO);
+    close(WRITE);
+
+    exec_single_program_args(second_args, READ, STDOUT_FILENO, STDERR_FILENO);
+    close(READ);
     return;
 }
-        
-
-
-
-
-
-
-
-
-
-
-
-
+    
 
 //args: program name and its arguments
 //int stdin, stdout, stderr: file descriptors to use for child
-void exec_single_program_args(char ** args, int stdin, int stdout, int stderr) {
+void exec_single_program_args(char **args, int stdin, int stdout, int stderr) {
     pid_t parent;
     int status;
 
@@ -259,15 +198,23 @@ void exec_single_program_args(char ** args, int stdin, int stdout, int stderr) {
         dup2(stdout, STDOUT_FILENO);
         dup2(stderr, STDERR_FILENO);
         if (execvp(args[0], args) < 0)
-            printf("Error: Execution failed.\n");
+            printf("Error: %s.\n", strerror(errno));
         exit(0);
     }
 
-    else if (child_process == -1) printf("Error: child could not be forked.\n");
+    else if (child_process == -1) {
+        printf("Error: child could not be forked.\n");
+        return;
+    }
+    
     else {
-        parent = waitpid(child_process, &status, 0);
-        //sleep(1);
-        printf("  test: waitpid returned  ");
+        while(true) {
+            parent = waitpid(child_process, &status, 0);
+
+            //handles ^C interrupting waitpid
+            if(parent < 0 && errno == EINTR) continue;
+            else break;
+        }
     }
     
     //indicate to terminate_exec no process is running
