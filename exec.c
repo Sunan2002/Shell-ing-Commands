@@ -143,7 +143,7 @@ void exec_args(char ** args) {
 
         else if(strcmp(*pos, "|") == 0) {
             if(pos[1] == NULL) {
-                printf("Error: must specify file to pipe to.\n");
+                printf("Error: must specify program to pipe to.\n");
                 return;
             }
 
@@ -272,16 +272,30 @@ _Bool exec_special(char **args) {
         return true;
     }
     else if(strcmp(args[0], "help") == 0) {
-        printf("This is the chocomilk shell:\n");
-        printf("List of commands available in the shell:\n");
-        printf("cd\tls\texit");
-        printf("\n\nRedirection commands:");
-        printf("\n > \n 2> \n &> \n >> \n 2>> \n &>>");
-        printf("\n\nPiping commands: \n | \n");
-        printf("\ncd <dir>: changes the working directory to dir, or to the user's home directory if not provided.");
-        printf("\nexit: exits the current working process.\n");
+        if (args[1] == NULL) {
+            printf("This is the chocomilk shell:\n");
+            printf("List of commands available in the shell:\n");
+            printf(" cd\n help\n exit");
+            printf("\n\nRedirection Commands:");
+            printf("\n > \n 2> \n &> \n >> \n 2>> \n &>> \n <");
+            printf("\n\nPiping Commands: \n | \n\n");
+            printf("For help with a specific command, run help <command>.\n");
+        }
+        else if(strcmp(args[1], "cd") == 0) {
+            printf("cd: changes the working directory to the user's home directory." 
+            "\n cd <name of directory>: changes the working directory to the given directory.\n");
+        }
+        else if(strcmp(args[1], "exit") == 0) {
+            printf("exit: exits the shell.\n");
+        }
+        else if(strcmp(args[1], "help") == 0) {
+            printf("help: lists general chocomilk help.\n help <command>: gives help for built-in commands.\n");
+        }
+        else printf("Error: %s is not a built-in chocomilk command.\n", args[1]);
+        return true;
     }
     else return false;
 }
+
 
 
