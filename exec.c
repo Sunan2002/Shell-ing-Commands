@@ -16,6 +16,8 @@ void exec_single_program_args(char ** args, int stdin, int stdout, int stderr);
 
 void pipe_args(char** args);
 
+void pls_help();
+
 void exec_args(char ** args) {
     int stdout_fd = STDOUT_FILENO;
     int stdin_fd = STDIN_FILENO;
@@ -316,22 +318,27 @@ _Bool exec_special(char **args) {
         return true;
     }
     else if(strcmp(args[0], "help") == 0) {
-        pls_help();
+        if (args[1] == NULL){
+            pls_help();
+        }
+        else if(strcmp(args[1], "cd") == 0){
+            printf("\ncd: enters the working directory. \n cd <name of drectory> will enter the given directory.\n\n");
+        }
+        else if(strcmp(args[1], "exit") == 0){
+            printf("\nexit: exits the current working process.\n\n");
+        }
+        return true;
     }
     else return false;
 }
 
-int pls_help() {
+void pls_help() {
     printf("This is the chocomilk shell:\n");
     printf("List of Commands Available in the Shell:\n");
     printf("\n\n cd   ls   exit");
     printf("\n\nRedirection Commands:");
     printf("\n > \n 2> \n &> \n >> \n 2>> \n &>>");
-    printf("\n\nPiping Commands: \n | \n");
-    printf("\ncd: enters the working directory.");
-    printf("\nexit: exits the current working process");
-    printf("\nls: lists all files and directories contained within the current working directory.");
-    return 0;
+    printf("\n\nPiping Commands: \n | \n\n");
 }
 
 
