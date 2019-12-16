@@ -10,12 +10,21 @@
 #include <errno.h>
 #include <signal.h>
 
+//args: args[0] is program name, arg[last] = NULL
+//executes built-in commands like help and exit
+//returns true if special program executed, false otherwise
 _Bool exec_special(char **args);
 
+//args: standard args format
+//stdin, stdout, stderr: file descriptors used for program's std out, in, and err respectively
+//executes given program with args in a forked process
 void exec_single_program_args(char ** args, int stdin, int stdout, int stderr);
 
-void pipe_args(char**, char**);
+//first_program, second_program: args for executing each program in standard format
+//executes first_program[0], then feeds its output to execution of second_program[0]
+void pipe_args(char **first_program, char **second_program);
 
+//documented in exec.h
 void exec_args(char ** args) {
     int stdout_fd = STDOUT_FILENO;
     int stdin_fd = STDIN_FILENO;
@@ -263,23 +272,16 @@ _Bool exec_special(char **args) {
         return true;
     }
     else if(strcmp(args[0], "help") == 0) {
-        pls_help();
+        printf("This is the chocomilk shell:\n");
+        printf("List of commands available in the shell:\n");
+        printf("cd\tls\texit");
+        printf("\n\nRedirection commands:");
+        printf("\n > \n 2> \n &> \n >> \n 2>> \n &>>");
+        printf("\n\nPiping commands: \n | \n");
+        printf("\ncd <dir>: changes the working directory to dir, or to the user's home directory if not provided.");
+        printf("\nexit: exits the current working process.\n");
     }
     else return false;
 }
-
-int pls_help() {
-    printf("This is the chocomilk shell:\n");
-    printf("List of Commands Available in the Shell:\n");
-    printf("\n\n cd   ls   exit");
-    printf("\n\nRedirection Commands:");
-    printf("\n > \n 2> \n &> \n >> \n 2>> \n &>>");
-    printf("\n\nPiping Commands: \n | \n");
-    printf("\ncd: enters the working directory.");
-    printf("\nexit: exits the current working process");
-    printf("\nls: lists all files and directories contained within the current working directory.");
-    return 0;
-}
-
 
 
