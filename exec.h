@@ -11,7 +11,7 @@ pid_t child_process;
 //the next args are passed to the program, and args[n_last] == NULL
 void exec_args(char ** args);
 
-//if a child process is executing a program, it is sent SIGTERM
+//if a child process is executing a program, it is sent SIGINT
 //otherwise no action taken
 void terminate_exec();
 

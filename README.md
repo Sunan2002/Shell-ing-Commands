@@ -1,22 +1,24 @@
-chochomilk
-by Darius Jankauskus and Sunan Tajwar
+# chochomilk
+### by Darius Jankauskus and Sunan Tajwar
 
-Features:
-        Forks and executes commands
-        Parses multiple commands on one line
-        Redirects Using >, 2>, &>, >>, 2>>, &>>
-        Pipes commands using |
+## Features:
+        - Forks and executes commands
+        - Parses multiple commands on one line
+        - Redirects using >, 2>, &>, >>, 2>>, &>>, <
+        - Pipes commands using |
+        - Terminate running programs using keyboard interrupt ^C
+        - User help within help command
 
-Attempted:
-        Attempted expand piping to execute multiple pipes 
+## Attempted:
+        - Attempted expand piping to pipe between more than two programs
 
-Bugs: 
-        There is a bug in piping when trying to use multiple pipes
+## Bugs: 
+        - Multiple pipes will not execute properly
 
-Files and Function Headers:
+## Files and Function Headers:
 
-parser.c
-        Handles all line parsing functions
+### parser.c
+        - Handles all line parsing functions
 
         ========= char** split_input(char *input) ==========
         Inputs: char* input
@@ -28,11 +30,11 @@ parser.c
         ========== void strip_newline(char *input) =========
         Input: char *input
         Returns: Replaces all "\n" with \0
-        Parses thorugh the command line arguments
+        Parses through the command line arguments
         If an argument contain "\n" it gets replaced with "\0", thus "stripping the new line"
 
 
-exec.c
+### exec.c
         Handles the execution of the arguments in the command line
 
         ========_Bool exec_special(char **args)==========
@@ -69,23 +71,23 @@ exec.c
          Forks and executes the READ end using exec_single_program_args
          Closes the WRITE and READ ends
 
+         ============= void terminate_exec() ===========
+         If a child process is executing a program, it is sent SIGINT
+         Otherwise no action is taken
 
-main.c
+
+### main.c
         Handles the reading, parsing, and execution of the inputs in the shell command line
 
         ======== static void sigint_handler(int sig) =======
-        Input: int sig
-        Returns: Terminates forked orocess on SIGINT from user, if present
+        Input: integer value of signal, assumed always SIGNIT
+        Returns: Terminates forked process on SIGINT from user, if present, using terminate_exec()
 
         ========= int main(int argc, char **argv) ===========
-        Input: int argc, char **argv
+        Input: void
         Returns: Executes the command line arguments
         Welcomes user to shell with a printed message
         Prints the current working directory
         Gets the input using fgets and strips newline with strip_newline
         Executes the arguments using exec_args
         Frees the args
-
-
-
-
