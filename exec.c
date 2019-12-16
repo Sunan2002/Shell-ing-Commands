@@ -317,7 +317,6 @@ _Bool exec_special(char **args) {
     }
     else if(strcmp(args[0], "help") == 0) {
         pls_help();
-        des_help(args);
     }
     else return false;
 }
@@ -329,20 +328,9 @@ int pls_help() {
     printf("\n\nRedirection Commands:");
     printf("\n > \n 2> \n &> \n >> \n 2>> \n &>>");
     printf("\n\nPiping Commands: \n | \n");
-    printf("\nPlease Print: help <command name> .");
-    return 0;
-}
-
-int des_help(char** args){
-    if (strcmp(args[0], "help") != 0) {
-        fprintf(stderr, "\nPlease Print: help <command name> .");
-    }
-    if (args[1] == NULL) {
-        fprintf(stderr, "\nhelp expects two arguments: help <command name> .");
-    }
-    else if (strcmp(args[1], ">")) {
-        printf(">: Redirects stdout to a file");
-    }
+    printf("\ncd: enters the working directory.");
+    printf("\nexit: exits the current working process");
+    printf("\nls: lists all files and directories contained within the current working directory.");
     return 0;
 }
 
