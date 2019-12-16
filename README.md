@@ -1,4 +1,4 @@
-# chochomilk
+# chocomilk
 ### by Darius Jankauskus and Sunan Tajwar
 
 ## Features:
