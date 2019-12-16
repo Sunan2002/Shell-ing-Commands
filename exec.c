@@ -262,7 +262,23 @@ _Bool exec_special(char **args) {
         }
         return true;
     }
+    else if(strcmp(args[0], "help") == 0) {
+        pls_help();
+    }
     else return false;
+}
+
+int pls_help() {
+    printf("This is the chocomilk shell:\n");
+    printf("List of Commands Available in the Shell:\n");
+    printf("\n\n cd   ls   exit");
+    printf("\n\nRedirection Commands:");
+    printf("\n > \n 2> \n &> \n >> \n 2>> \n &>>");
+    printf("\n\nPiping Commands: \n | \n");
+    printf("\ncd: enters the working directory.");
+    printf("\nexit: exits the current working process");
+    printf("\nls: lists all files and directories contained within the current working directory.");
+    return 0;
 }
 
 
